@@ -1,0 +1,133 @@
+CREATE DATABASE Billing Manangement System;
+USE Billing Manangement System;
+CREATE TABLE Stock(PCode UNIQUE NOT NULL,Product VARCHAR(30) NOT NULL,Price INT NOT NULL DEFAULT 0,Quantity INT NOT NULL DEFAULT 0);
+CREATE TABLE Occupency(timeslot VARCHAR(15) NOT NULL,Total INT NOT NULL DEFAULT 10,Occupied INT DEFAULT 0);
+CREATE TABLE Timeslot(timeslot NOT NULL UNIQUE VARCHAR(15),Bill_No INT UNIQUE);
+CREATE TABLE Bill(Bill_No INT UNIQUE,timeslot VARCHAR(15) NOT NULL,Date VARCHAR(20) NOT NULL,Pnum CHAR(10) CHECK LENGTH(Pnum)=10 NOT NULL,Total_Items INT NOT NULL,Orders VARCHAR(500) NOT NULL,Price INT NOT NULL);
+
+import mysql.connecter as mysql
+mycon=mysql.connect(host=,user=,passwd=,database=)
+cursor=mycon.cursor()
+cursor.execute("SELECT * FROM Stock")
+List=cursor.fetchall() 
+
+def read_file():
+    	nspace=10
+	space=10*" "
+	print("-------------------------------------------------------------------")
+	print("Pcode","\t\t","Product",(nspace+1)*" ","Price",(nspace+3)*" ","Quantity")
+	print("-------------------------------------------------------------------")
+	for i in List:
+    		if len(i[1])>8:
+        		space1=nspace-(len(i[1])-8)
+    		elif len(i[1])<8:
+        		space1=nspace+(8-len(i[1]))
+    		else:
+        		space1=nspace
+    		if len(i[2])>8:
+        		space2=nspace-(len(i[2])-8)
+    		elif len(i[2])<8:
+        		space2=nspace+(8-len(i[2]))
+    		else:
+        		space2=nspace
+    		print(i[0],"\t\t",i[1],space1*" ",i[2],space2*" ",i[3])
+	print("-------------------------------------------------------------------")
+
+def purchase(a):
+    L=a
+    a_name=input("Please enter your name: ")
+    print("\nHello "+a_name+"! Welcome to our Departmental Store.\n")
+    q={} 
+    flag="Y"
+    while flag.upper()=="Y":  
+            product=input("What product do you want to buy ? ")  
+            product_name=product.upper()
+            for i in L:
+    	        if product_name==i[1].upper():
+                	p_quantity=input("How many "+product+" do you want to buy: ")
+                	if p_quantity.isdigit():
+                	    if int(p_quantity)<=int(i[3]):
+                	        q[product_name]=p_quantity
+                	        break
+                	    else:
+                	        if int(i[3])==0:
+                	            print("\nSorry!! "+a_name+"!, "+product+" is out of stock. We will add this stock of this"+product+" later\n")
+                	            break
+                	        else:
+                	            print("\nSorry!! "+a_name+"!, we only have ",i[3],product)
+                	            break
+            else:
+                print("sorry!! "+product+" is not available in our store.")
+            flag=(input(a_name+" do you want buy more products?(Y/N)"))
+    else:
+	    print("Thank You",a_name+"!! Vist Again")	
+
+    print ("\nYou Choosed Items and it's Quantity respectively:\n",q,"\n")
+    final_dict={}	
+    f_amount=0  #final amount
+    for keys in q.keys():
+	    for j in L:
+        	if keys==j[1].upper():
+        	    price=int(j[2])
+        	    num=int(q[keys])
+        	    amount=(price*num)
+        	    f_amount+=(amount)
+        	    final_dict[j[0]]=[j[1],j[2],str(num),amount]
+    print(final_dict)
+    import datetime 
+    dt=str(datetime.datetime.now().month)+str(datetime.datetime.now().day)+str(datetime.datetime.now().hour)+str(datetime.datetime.now().minute)+str(datetime.datetime.now().second)
+    invoice=str(dt)   
+    t=str(datetime.datetime.now().year)+"-"+str(datetime.datetime.now().month)+"-"+str(datetime.datetime.now().day) #date
+    d=str(t)    #date
+    u=str(datetime.datetime.now().hour)+":"+str(datetime.datetime.now().minute)+":"+str(datetime.datetime.now().second) #time
+    e=str(u)    #time
+    file=open(invoice+"("+a_name+").txt","w")      #generate a unique invoive name and open it in write mode.
+    file.write("======================================================================")
+    file.write("\n\t\t\t\tDEPARTMENTAL STORE")
+    file.write("\n\nInvoice No: "+invoice)
+    file.write("\nName of Customer: "+a_name) 
+    file. write("\n"+"Date of Purchase: "+d)
+    file. write("\n"+"Time of Purchase: "+e+"")
+    file.write("\n======================================================================\n")
+    nspace=10
+    space=10*" "
+    file.writelines(["Product",(nspace+1)" ","Unit Price",(nspace-2)" ","Quantity",(nspace)*" ","Total Price",'\n'])
+    file.write("-----------------------------------------------------------------------\n")
+    for i in final_dict:
+        if len(final_dict[i][0])>8:
+    	    space1=nspace-(len(final_dict[i][0])-8)
+        elif len(final_dict[i][0])<8:
+    	    space1=nspace+(8-(len(final_dict[i][0])))
+        else:
+    	    space1=nspace
+        if len(final_dict[i][1])>8:
+    	    space2=nspace-((len(final_dict[i][1]))-8)
+        elif len(final_dict[i][1])<8:
+    	    space2=nspace+(8-(len(final_dict[i][1])))
+        else:
+    	    space2=nspace
+        if len(final_dict[i][2])>8:
+    	    space3=nspace-((len(final_dict[i][2]))-8)
+        elif len(final_dict[i][2])<8:
+    	    space3=nspace+(8-(len(final_dict[i][2])))
+        else:
+    	    space3=nspace
+        file.writelines([str(final_dict[i][0]),space1*" ",final_dict[i][1],space2*" ",str(final_dict[i][2]),space3*" ",str(final_dict[i][3]),'\n'])
+    file.write("\n\n----------------------------------------------------------------------")
+    file.write("\n\t\t\t\tYour total amount is: "+str(f_amount))
+    file.write("\n----------------------------------------------------------------------")
+    file.write("\n\t\t\tThank You "+a_name+" for your shopping.\n\t\t\t\tSee you again!!")
+    file.write("\n======================================================================")
+    file.close()
+a=[["103","icecream","50","60"],["190","hat","100","40"],["145","speaker","250","80"]]
+purchase(a)
+
+again="Y"
+while again.upper()=="Y":
+    a=List	
+    read_file()
+    b=purchase(a)
+    over_write(a,b)
+    again=input("\nDoes the any new customer waiting to buy product? ")
+print("\nThank you for shopping from our store!!")
+print("Please check your invoice for your shopping details, \nWhich we created txt file format for you.")
